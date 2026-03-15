@@ -1,186 +1,90 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memoria – Sesión 1: Introducción a WebGL (I)</title>
-    <link rel="stylesheet" type="text/css" href="report.css">
-</head>
-<body>
-
-<header>
-    <h1>Sesión 1: Introducción a WebGL (I)</h1>
-    <div class="meta">
-        Asignatura: Computación Gráfica y Servicios Multimedia &nbsp;|&nbsp;
-        Alumno: uo289183 &nbsp;|&nbsp;
-        Fecha: 2026-03-10
-    </div>
-</header>
-
-<main>
-
-    <!-- ── 1. Resumen ───────────────────────────────────────────────── -->
-    <section>
-        <h2>1. Resumen de la sesión</h2>
-        <p>
-            En esta primera sesión se ha trabajado con <strong>WebGL</strong> a través de la biblioteca
-            <strong>three.js</strong>. Se han configurado las herramientas de desarrollo (Node.js, npm, Webpack,
-            Visual Studio Code, git) y se han implementado seis escenas progresivas que cubren los
-            siguientes conceptos:
-        </p>
-        <ul>
-            <li>Comprobación de soporte WebGL en el navegador.</li>
-            <li>Creación de una escena mínima: escena, renderizador, cámara y objeto.</li>
-            <li>Rotación de objetos y redimensionado reactivo de la ventana.</li>
-            <li>Uso de geometrías predefinidas (caja, cilindro, esfera).</li>
-            <li>Definición de geometría personalizada mediante <code>BufferGeometry</code>.</li>
-            <li>Tipos de materiales (Basic, Lambert, Phong) y fuentes de luz.</li>
-        </ul>
-        <h3>Dificultades encontradas</h3>
-        <p>
-            La ruta de importación del módulo de comprobación WebGL de three.js
-            (<code>three/examples/jsm/capabilities/WebGL.js</code>) quedó obsoleta a partir de r158, por
-            lo que se optó por implementar la verificación directamente con la API nativa del navegador
-            (<code>window.WebGL2RenderingContext</code>), lo que resulta más robusto frente a cambios
-            de versión de la biblioteca.
-        </p>
-        <p>
-            Para la geometría de la casa (prac1-5) fue necesario calcular manualmente el orden de los
-            índices para garantizar la orientación CCW (cara frontal visible desde el eje +Z).
-        </p>
-    </section>
-
-    <!-- ── 2. Práctica 1-1 ──────────────────────────────────────────── -->
-    <section>
-        <h2>2. Práctica 1-1 – Comprobación de soporte WebGL</h2>
-        <p>
-            Página mínima que verifica si el navegador soporta WebGL2 e informa al usuario con un
-            mensaje en verde (disponible) o en rojo (no disponible).
-        </p>
-        <div class="scene-wrapper">
-            <p>Escena prac1-1.html:</p>
-            <iframe class="scene" src="prac1-1.html" title="prac1-1"></iframe>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title>Informe de prácticas de CGSM (2025-2026)</title>
+        <link rel="stylesheet" type="text/css" href="report.css">
+    </head>
+    <body>
+        <!-- Información general -->
+        <div id="head">
+            <table id="general">
+                <tr>
+                    <th class="header">Nombre:</th>
+                    <td>Pablo González García - UO289183</td>
+                </tr>
+                <tr>
+                    <th>Práctica:</th>
+                    <td>1</td>
+                </tr>
+            </table>
         </div>
-    </section>
-
-    <!-- ── 3. Práctica 1-2 ──────────────────────────────────────────── -->
-    <section>
-        <h2>3. Práctica 1-2 – Cubo con material básico (vista frontal)</h2>
-        <p>
-            Primera escena three.js: escena, renderizador WebGL, cámara en perspectiva en
-            (0, 0, 300) y un cubo de 100×100×100 con <code>MeshBasicMaterial</code>.
-        </p>
-        <div class="scene-wrapper">
-            <p>Escena prac1-2.html:</p>
-            <iframe class="scene" src="prac1-2.html" title="prac1-2"></iframe>
+        <div id="content">
+            <h1>Memoria</h1>
+            <h2>Descripción de la práctica</h2>
+                <p>
+                    En esta primera práctica se introducen los fundamentos de WebGL mediante la biblioteca
+                    <em>three.js</em>. Se parte de la configuración del entorno de trabajo (npm, webpack, git)
+                    y se progresa desde una comprobación básica del soporte WebGL hasta escenas con múltiples
+                    objetos 3D, transformaciones lineales, geometrías personalizadas y diferentes modelos de
+                    iluminación.
+                </p>
+            <h2>Ejercicio 1</h2>
+                <p>
+                    Comprobación del soporte WebGL2 en el navegador. El script detecta si
+                    <code>WebGL2RenderingContext</code> está disponible e informa al usuario con un mensaje de
+                    confirmación (verde) o de error con enlace de ayuda (rojo).
+                </p>
+                <iframe class="container" src="prac1-1.html"></iframe>
+            <h2>Ejercicio 2</h2>
+                <p>
+                    Escena mínima con three.js: se crea una escena, un renderizador
+                    <code>WebGLRenderer</code>, una cámara en perspectiva y un cubo con
+                    <code>MeshBasicMaterial</code>. Sirve como "Hola Mundo" de three.js.
+                </p>
+                <iframe class="container" src="prac1-2.html"></iframe>
+            <h2>Ejercicio 3</h2>
+                <p>
+                    Redimensionado de la escena. Se añade al cubo una rotación inicial y se suscribe el
+                    evento <code>resize</code> de la ventana para actualizar el aspecto de la cámara y el
+                    tamaño del renderizador, manteniendo la escena correctamente proporcional al cambiar el
+                    tamaño del navegador.
+                </p>
+                <iframe class="container" src="prac1-3.html"></iframe>
+            <h2>Ejercicio 4</h2>
+                <p>
+                    Geometrías primitivas de three.js. Se añaden a la escena tres objetos con material básico:
+                    un cubo (<code>BoxGeometry</code>), un cilindro (<code>CylinderGeometry</code>) y una
+                    esfera (<code>SphereGeometry</code>), distribuidos horizontalmente en la escena.
+                </p>
+                <iframe class="container" src="prac1-4.html"></iframe>
+            <h2>Ejercicio 5</h2>
+                <p>
+                    Geometría personalizada con <code>BufferGeometry</code>. Se incorpora a la escena del
+                    ejercicio anterior una figura de casa definida manualmente mediante vértices e índices de
+                    triángulos, usando <code>setAttribute</code> y <code>setIndex</code>.
+                </p>
+                <iframe class="container" src="prac1-5.html"></iframe>
+            <h2>Ejercicio 6</h2>
+                <p>
+                    Materiales e iluminación. Se añade una luz ambiental (<code>AmbientLight</code>) y una
+                    luz direccional (<code>DirectionalLight</code>) a la escena. Cada objeto usa un material
+                    distinto para mostrar la diferencia entre modelos de iluminación: el cubo usa
+                    <code>MeshBasicMaterial</code> (sin reacción a la luz), el cilindro
+                    <code>MeshLambertMaterial</code> (difuso) y la esfera <code>MeshPhongMaterial</code>
+                    (difuso + especular con brillo ajustable).
+                </p>
+                <iframe class="container" src="prac1-6.html"></iframe>
+            <h2>Dificultades encontradas</h2>
+                <p>
+                    La principal dificultad fue entender el sistema de coordenadas y la posición de la cámara
+                    en three.js: por defecto todos los objetos se crean en el origen, por lo que hay que alejar
+                    la cámara sobre el eje Z para que sean visibles. Al añadir varios objetos en los ejercicios
+                    4 y 5 fue necesario ajustar tanto las posiciones como la distancia de la cámara para que
+                    todos quedasen encuadrados. Con la geometría personalizada del ejercicio 5 surgieron
+                    problemas de orientación de las caras (culling), resueltos usando
+                    <code>THREE.DoubleSide</code> en el material.
+                </p>
         </div>
-        <h3>Cuestión: ¿Se muestra el cubo correctamente? ¿Por qué se ve así?</h3>
-        <div class="answer">
-            El cubo se muestra como un cuadrado blanco centrado en pantalla. Esto es correcto,
-            aunque no intuitivo: la cámara está situada en el eje Z mirando hacia el origen, por
-            lo que únicamente ve la cara frontal del cubo. Al no existir rotación ni perspectiva
-            apreciable con esta orientación, el objeto parece plano y no se aprecia su volumen.
-        </div>
-    </section>
-
-    <!-- ── 4. Práctica 1-3 ──────────────────────────────────────────── -->
-    <section>
-        <h2>4. Práctica 1-3 – Cubo rotado y redimensionado automático</h2>
-        <p>
-            Se aplica una rotación de π/5 radianes en X e Y para apreciar las tres dimensiones.
-            Se añade el listener <code>resize</code> para actualizar la matriz de proyección y
-            volver a renderizar cuando la ventana cambia de tamaño.
-        </p>
-        <div class="scene-wrapper">
-            <p>Escena prac1-3.html:</p>
-            <iframe class="scene" src="prac1-3.html" title="prac1-3"></iframe>
-        </div>
-    </section>
-
-    <!-- ── 5. Práctica 1-4 ──────────────────────────────────────────── -->
-    <section>
-        <h2>5. Práctica 1-4 – Tres geometrías con material básico</h2>
-        <p>
-            Escena con tres objetos separados: un cubo (izquierda), un cilindro (centro) y una
-            esfera (derecha), todos con <code>MeshBasicMaterial</code> por defecto.
-            La cámara se desplaza a z = 400 para encuadrar los tres objetos.
-        </p>
-        <div class="scene-wrapper">
-            <p>Escena prac1-4.html:</p>
-            <iframe class="scene" src="prac1-4.html" title="prac1-4"></iframe>
-        </div>
-    </section>
-
-    <!-- ── 6. Práctica 1-5 ──────────────────────────────────────────── -->
-    <section>
-        <h2>6. Práctica 1-5 – Geometría personalizada: casa (BufferGeometry)</h2>
-        <p>
-            Se añade a la escena anterior una geometría plana en forma de casa construida
-            mediante <code>THREE.BufferGeometry</code>. Se definen 5 vértices (4 para el
-            cuerpo rectangular + 1 para la cúspide del tejado) y 3 triángulos.
-            La cámara se aleja a z = 550 para que los cuatro objetos sean visibles.
-        </p>
-        <div class="scene-wrapper">
-            <p>Escena prac1-5.html:</p>
-            <iframe class="scene" src="prac1-5.html" title="prac1-5"></iframe>
-        </div>
-        <h3>Diseño de la geometría de la casa</h3>
-        <div class="answer">
-            <pre>
-     4 (0, 70)
-    / \
-   /   \
-  3-----2   y =  15
-  |     |
-  0-----1   y = -55
-x= -50   50
-            </pre>
-            Índices de triángulos (CCW desde +Z):
-            [0,1,2], [0,2,3] → cuerpo;&nbsp; [3,2,4] → tejado.
-        </div>
-    </section>
-
-    <!-- ── 7. Práctica 1-6 ──────────────────────────────────────────── -->
-    <section>
-        <h2>7. Práctica 1-6 – Materiales diferenciados y luces</h2>
-        <p>
-            La escena incluye los cuatro objetos (prac1-4 + casa) con los siguientes materiales
-            y una iluminación formada por una <code>AmbientLight</code> y una
-            <code>DirectionalLight</code>:
-        </p>
-        <ul>
-            <li><strong>Cubo</strong> – <code>MeshBasicMaterial</code> (rojo): color uniforme,
-                no afectado por la luz.</li>
-            <li><strong>Cilindro</strong> – <code>MeshLambertMaterial</code> (azul): modelo
-                Lambert, componentes ambiental y difusa.</li>
-            <li><strong>Esfera</strong> – <code>MeshPhongMaterial</code> (verde, shininess=120):
-                modelo Blinn-Phong, añade componente especular.</li>
-            <li><strong>Casa</strong> – <code>MeshLambertMaterial</code> (naranja).</li>
-        </ul>
-        <div class="scene-wrapper">
-            <p>Escena prac1-6.html:</p>
-            <iframe class="scene" src="prac1-6.html" title="prac1-6"></iframe>
-        </div>
-        <h3>Diferencias entre materiales</h3>
-        <div class="answer">
-            <ul>
-                <li><code>MeshBasicMaterial</code>: el cubo aparece con color plano idéntico
-                    independientemente de las luces. No existe sombreado.</li>
-                <li><code>MeshLambertMaterial</code>: el cilindro muestra variación de
-                    brillo en función del ángulo entre la normal y la dirección de la luz
-                    (componente difusa), sin reflejo especular.</li>
-                <li><code>MeshPhongMaterial</code>: la esfera exhibe un punto de luz brillante
-                    (reflejo especular) además del sombreado difuso, lo que le da apariencia
-                    brillante.</li>
-            </ul>
-        </div>
-    </section>
-
-</main>
-
-<footer>
-    Computación Gráfica y Servicios Multimedia – Sesión 1 – uo289183
-</footer>
-
-</body>
+    </body>
 </html>
