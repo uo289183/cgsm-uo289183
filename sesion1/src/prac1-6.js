@@ -65,14 +65,6 @@ if (!isWebGL2Available()) {
     scene.add(sphere);
 
     // ── Casa – geometría plana personalizada (BufferGeometry) ───────────────
-    //
-    //         4 (cúspide del tejado)
-    //        /\
-    //       /  \
-    //      3----2   <- parte superior de las paredes
-    //      |    |
-    //      0----1   <- base
-    //
     const houseGeometry = new THREE.BufferGeometry();
 
     const vertices = new Float32Array([
