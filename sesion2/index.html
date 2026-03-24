@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title>Informe de prácticas de CGSM (2025-2026)</title>
+        <link rel="stylesheet" type="text/css" href="report.css">
+    </head>
+    <body>
+        <!-- Información general -->
+        <div id="head">
+            <table id="general">
+                <tr>
+                    <th class="header">Nombre:</th>
+                    <td>Pablo González García - UO289183</td>
+                </tr>
+                <tr>
+                    <th>Práctica:</th>
+                    <td>2</td>
+                </tr>
+            </table>
+        </div>
+        <div id="content">
+            <h1>Memoria</h1>
+            <h2>Descripción de la práctica</h2>
+                <p>
+                    En esta segunda práctica se amplían los conocimientos de WebGL con three.js introduciendo
+                    texturas, animaciones y shaders. El objetivo principal es construir progresivamente un modelo
+                    del sistema Tierra-Luna, culminando con la adición de un Sol renderizado mediante shaders GLSL
+                    personalizados y la importación de un modelo 3D externo (ISS) en formato COLLADA.
+                </p>
+            <h2>Ejercicio 1 – Cubo texturizado</h2>
+                <p>
+                    Se parte de la escena del ejercicio 3 de la práctica anterior (cubo rotado) y se añade una
+                    textura de madera (<code>crate.gif</code>) mediante <code>TextureLoader</code>. La carga de
+                    texturas es asíncrona, por lo que es necesario pasar una función de <em>callback</em> a
+                    <code>textureLoader.load()</code> que re-renderice la escena cuando la textura esté disponible.
+                    Sin este callback, en algunos navegadores el cubo aparece negro porque la escena se renderiza
+                    antes de que la textura haya terminado de descargarse.
+                </p>
+                <iframe class="container" src="prac2-1.html" scrolling="no"></iframe>
+            <h2>Ejercicio 2 – Tierra con textura</h2>
+                <p>
+                    Se crea una esfera (<code>SphereGeometry</code>) con material <code>MeshPhongMaterial</code>
+                    y textura de la superficie terrestre. Se añade una <code>PointLight</code> lateral que emula
+                    al Sol, situado fuera de la escena. El uso de <code>MeshPhongMaterial</code> permite apreciar
+                    las componentes ambiental, difusa y especular de la luz sobre la Tierra.
+                    Para obtener suficiente iluminación se configuró la luz con <code>decay=0</code>
+                    (sin atenuación por distancia).
+                </p>
+                <iframe class="container" src="prac2-2.html" scrolling="no"></iframe>
+            <h2>Ejercicio 3 – Tierra con atmósfera</h2>
+                <p>
+                    Se añade una segunda esfera ligeramente mayor que la Tierra para representar la atmósfera,
+                    con una textura de nubes transparente. El material utilizado es <code>MeshLambertMaterial</code>
+                    (sin componente especular) con <code>transparent: true</code> y <code>color: 0xFFFFFF</code>
+                    para que las partes opacas de la textura muestren nubes blancas y las partes transparentes
+                    dejen ver la superficie terrestre.
+                </p>
+                <iframe class="container" src="prac2-3.html" scrolling="no"></iframe>
+            <h2>Ejercicio 4 – Inclinación axial de la Tierra</h2>
+                <p>
+                    Se introduce la inclinación axial de la Tierra (≈23°, 0,36 rad) sobre el eje Z, agrupando
+                    el globo terráqueo y la atmósfera en un <code>Object3D</code> común. De este modo la rotación
+                    afecta simultáneamente a ambos objetos, manteniendo la coherencia del sistema.
+                </p>
+                <iframe class="container" src="prac2-4.html" scrolling="no"></iframe>
+            <h2>Ejercicio 5 – Sistema Tierra-Luna</h2>
+                <p>
+                    Se añade la Luna con radio 0,27 veces el de la Tierra (a escala real). La posición de la
+                    Luna se calcula con la fórmula no a escala <code>Math.sqrt(distance/2)</code>, donde
+                    <code>distance</code> es la distancia real Tierra-Luna en radios terrestres (~60,27).
+                    La Luna se sitúa en un <code>Object3D</code> (<code>moonGroup</code>) que permite
+                    hacerla orbitar alrededor de la Tierra. Su plano orbital está ligeramente inclinado
+                    (0,089 rad ≈ 5,1°) y se le aplica bloqueo gravitacional (<code>rotation.y = Math.PI</code>).
+                </p>
+                <iframe class="container" src="prac2-5.html" scrolling="no"></iframe>
+            <h2>Ejercicio 6 – Rotación de la Tierra</h2>
+                <p>
+                    Se implementa la animación de rotación de la Tierra usando <code>THREE.Clock</code> y
+                    <code>requestAnimationFrame</code>. El globo terráqueo completa una vuelta en 24 segundos
+                    y la atmósfera rota al 95% de esa velocidad para simular el movimiento diferencial de las
+                    nubes respecto a la superficie.
+                </p>
+                <iframe class="container" src="prac2-6.html" scrolling="no"></iframe>
+            <h2>Ejercicio 7 – Órbita de la Luna</h2>
+                <p>
+                    Se añade la animación de la órbita lunar: la Luna completa una vuelta completa en
+                    28 días. Dado que 1 día equivale a 24 segundos en la simulación, el período orbital
+                    es de 28×24 = 672 segundos. Para ello se incrementa <code>moonGroup.rotation.y</code>
+                    en cada fotograma.
+                </p>
+                <iframe class="container" src="prac2-7.html" scrolling="no"></iframe>
+            <h2>Ejercicio 8 – Sol con shaders</h2>
+                <p>
+                    Se añade la esfera solar (5 veces el radio terrestre) usando un material de tipo
+                    <code>ShaderMaterial</code> con un <em>vertex shader</em> y un <em>fragment shader</em>
+                    escritos en GLSL. El shader de fragmentos combina dos texturas (<code>cloud.png</code>
+                    como mapa de ruido y <code>lavatile.jpg</code> como textura base) para simular la
+                    dinámica superficial del Sol. Se instaló el cargador <code>webpack-glsl-loader</code>
+                    para importar los ficheros <code>.glsl</code> directamente con <code>require()</code>.
+                    La variable <code>uniforms.time</code> se incrementa en cada fotograma para animar
+                    la superficie solar.
+                </p>
+                <iframe class="container" src="prac2-8.html" scrolling="no"></iframe>
+            <h2>Ejercicio 9 – Modelo ISS (COLLADA)</h2>
+                <p>
+                    Se crea una escena independiente donde se importa el modelo de la Estación Espacial
+                    Internacional en formato COLLADA usando <code>ColladaLoader</code> de three.js. La carga
+                    es asíncrona: se pasa un <code>LoadingManager</code> que añade el modelo a la escena
+                    cuando finaliza. Se calcula la <em>bounding box</em> del modelo para centrarlo
+                    automáticamente en el origen y escalarlo a ~5 unidades, de modo que la ISS
+                    aparezca completa y centrada en pantalla.
+                    <br><em>Nota: requiere el fichero <code>models/iss.dae</code> y sus imágenes asociadas.</em>
+                </p>
+                <iframe class="container" src="prac2-9.html" scrolling="no"></iframe>
+            <h2>Dificultades encontradas</h2>
+                <p>
+                    La principal dificultad fue la carga asíncrona de texturas: sin el <em>callback</em>
+                    en <code>TextureLoader.load()</code> la escena se renderizaba antes de que la textura
+                    estuviese disponible, mostrando objetos negros. La solución fue añadir siempre dicho
+                    <em>callback</em> para re-renderizar.
+                </p>
+                <p>
+                    Con la <code>PointLight</code>, en versiones recientes de three.js el decaimiento
+                    físico por defecto (<code>decay=2</code>) hace que la luz sea muy tenue a distancias
+                    grandes. Se resolvió configurando <code>decay=0</code> para eliminar la atenuación.
+                </p>
+                <p>
+                    Para los shaders GLSL fue necesario instalar <code>webpack-glsl-loader</code> y añadir
+                    la regla correspondiente en <code>webpack.config.js</code> para que webpack pudiera
+                    procesar los ficheros <code>.glsl</code> y cargarlos con <code>require()</code>.
+                </p>
+        </div>
+    </body>
+</html>

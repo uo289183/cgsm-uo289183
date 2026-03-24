@@ -16,7 +16,7 @@ tr {
     background: WhiteSmoke;
 }
 
-iframe .container {
+iframe.container {
     min-height: 500px;
     width: 100%;
     background-color: black;
