@@ -23,7 +23,7 @@ const earthMaterial = new THREE.MeshPhongMaterial({ map: earthMap });
 const earthGlobe = new THREE.Mesh(new THREE.SphereGeometry(earthRadius, 64, 64), earthMaterial);
 scene.add(earthGlobe);
 
-// Atmosphere
+// Atmosfera
 const atmosphereMap = textureLoader.load('../textures/atmosphere.gif', () => { renderer.render(scene, camera); });
 var atmosphereMaterial = new THREE.MeshLambertMaterial( { color: 0xFFFFFF, map: atmosphereMap,
     transparent: true } );
