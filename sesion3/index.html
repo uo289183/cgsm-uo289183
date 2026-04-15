@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title>Informe de prácticas de CGSM (2025-2026)</title>
+        <link rel="stylesheet" type="text/css" href="report.css">
+    </head>
+    <body>
+        <!-- Información general -->
+        <div id="head">
+            <table id="general">
+                <tr>
+                    <th class="header">Nombre:</th>
+                    <td>Pablo González García - UO289183</td>
+                </tr>
+                <tr>
+                    <th>Práctica:</th>
+                    <td>3</td>
+                </tr>
+            </table>
+        </div>
+        <div id="content">
+            <h1>Memoria</h1>
+            <h2>Descripción de la práctica</h2>
+                <p>
+                    En esta tercera práctica se profundiza en las capacidades avanzadas de WebGL mediante three.js.
+                    Se introducen los mapas topológicos (<em>bump maps</em>) para añadir sensación de volumen a las
+                    texturas sin modificar la geometría; las texturas de vídeo, que permiten usar un vídeo como
+                    fuente de textura en un plano 3D; los controles interactivos de la escena mediante
+                    <code>lil-gui</code> y el contador de fotogramas por segundo con <code>stats.js</code>;
+                    y los controles de cámara en primera persona (<code>FirstPersonControls</code>) para simular
+                    el desplazamiento del observador dentro de la escena.
+                </p>
+            <h2>Ejercicio 1 – Texturas avanzadas (bump map)</h2>
+                <p>
+                    Se parte de la escena del ejercicio 3 de la práctica 1 (cubo con redimensionado) y se
+                    añade animación de rotación sobre el eje Y. La escena muestra dos cubos con
+                    <code>MeshPhongMaterial</code>: el cubo de la izquierda usa únicamente la textura básica
+                    de ladrillo, mientras que el de la derecha añade además un mapa topológico en escala de
+                    grises (<code>bumpMap</code>). Los valores claros del mapa simulan mayor altura y los
+                    oscuros menor, produciendo un efecto visual de rugosidad en la superficie.
+                </p>
+                <p>
+                    <strong>Cuestión:</strong> ¿Puedes apreciar el efecto sobre la textura?<br>
+                    Sí. El cubo de la derecha presenta un relieve visual perceptible: las juntas entre
+                    ladrillos aparecen hundidas y la superficie de cada ladrillo muestra variaciones de
+                    profundidad que no existen en el cubo de la izquierda. El efecto se aprecia especialmente
+                    al rotar los cubos, ya que la interacción con la luz cambia según el ángulo de visión.
+                    El mapa topológico no altera la geometría real, sino que modifica los vectores normales
+                    de la superficie para simular el relieve durante el cálculo de iluminación.
+                </p>
+                <iframe class="container" src="prac3-1.html" scrolling="no"></iframe>
+            <h2>Ejercicio 2 – Textura de vídeo</h2>
+                <p>
+                    Se crea un plano 3D (<code>PlaneGeometry</code>) que usa como textura un vídeo. El flujo
+                    es el siguiente: se define un elemento <code>&lt;video&gt;</code> oculto en el HTML; en
+                    cada fotograma de animación se copia el cuadro actual al canvas intermedio con
+                    <code>drawImage</code> y se marca la textura como actualizada con
+                    <code>texture.needsUpdate = true</code>. El plano se anima para que rote, lo que permite
+                    apreciar que la textura es dinámica. Debido a que los navegadores modernos bloquean la
+                    reproducción automática de vídeo, se añaden listeners de interacción del usuario
+                    (<code>pointerdown</code>, <code>click</code>, <code>keydown</code>) que arrancan el vídeo
+                    al primer contacto.
+                </p>
+                <iframe class="container" src="prac3-2.html" scrolling="no"></iframe>
+            <h2>Ejercicio 3 – Control de variables y framerate</h2>
+                <p>
+                    Se parte de la escena del ejercicio 1 y se añaden dos elementos de control. En primer lugar,
+                    un panel de control mediante <code>lil-gui</code> que expone el parámetro
+                    <code>bumpScale</code> del material del cubo derecho con rango [−4, 4] y paso 0,1; el valor
+                    del control se transfiere al material en cada iteración del bucle de renderizado
+                    (<code>material.bumpScale = controlData.bumpScale</code>). En segundo lugar, se añade el
+                    contador de fotogramas por segundo de <code>stats.js</code>, cuyo método
+                    <code>stats.update()</code> se invoca también en cada fotograma para mantener la medición
+                    actualizada.
+                </p>
+                <iframe class="container" src="prac3-3.html" scrolling="no"></iframe>
+            <h2>Ejercicio 4 – Movimiento de la cámara (primera persona)</h2>
+                <p>
+                    Se construye una escena de tipo primera persona con los siguientes elementos: una rejilla
+                    de suelo (<code>GridHelper</code> de 800×800 con paso 40); una luz direccional blanca en
+                    (0, 0.5, 100) y una luz hemisférica (<code>HemisphereLight</code>) para iluminación
+                    natural general; dos cubos de 50 unidades con materiales diferenciados por cara: la cara
+                    enfrentada al otro cubo usa una textura especial (<code>brick_wall_with_button</code> con
+                    su mapa topológico), mientras que el resto de las cinco caras usan la textura de ladrillo
+                    estándar con su mapa topológico. Los controles de cámara se implementan con
+                    <code>FirstPersonControls</code>, actualizados en cada fotograma con el tiempo delta
+                    obtenido de <code>THREE.Clock</code>. El desplazamiento se realiza con las teclas W/A/S/D
+                    o las flechas del teclado, y la vista se controla con el ratón.
+                </p>
+                <iframe class="container" src="prac3-4.html" scrolling="no"></iframe>
+            <h2>Dificultades encontradas</h2>
+                <p>
+                    La principal dificultad en el ejercicio 1 fue entender la diferencia entre el mapa de
+                    textura base y el mapa topológico: ambos son imágenes cargadas con
+                    <code>TextureLoader</code>, pero el <code>bumpMap</code> no colorea la superficie sino
+                    que perturba las normales para simular relieve. Fue necesario usar
+                    <code>MeshPhongMaterial</code> en lugar de <code>MeshBasicMaterial</code>, ya que este
+                    último no realiza cálculo de iluminación y el efecto del bump map no sería visible.
+                </p>
+                <p>
+                    En el ejercicio 2, la restricción de los navegadores sobre la reproducción automática
+                    de vídeo requirió gestionar la interacción del usuario explícitamente. Además, el canvas
+                    intermedio debe tener exactamente las mismas dimensiones que el vídeo; de lo contrario,
+                    la imagen se deforma al copiarla.
+                </p>
+                <p>
+                    En el ejercicio 3, el objeto <code>controlData</code> y la variable <code>stats</code>
+                    deben ser accesibles desde la función de animación, por lo que es importante definirlos
+                    en el ámbito apropiado antes del bucle de renderizado y no dentro de funciones locales.
+                </p>
+                <p>
+                    En el ejercicio 4, la iluminación inicial con solo la luz direccional resultaba muy pobre
+                    en los cubos. La adición de la luz hemisférica mejoró notablemente la visibilidad. Por
+                    otro lado, los <code>FirstPersonControls</code> requieren llamar a
+                    <code>controls.handleResize()</code> en el evento <code>resize</code> para mantener
+                    el comportamiento correcto al cambiar el tamaño de la ventana.
+                </p>
+        </div>
+    </body>
+</html>
