@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title>Informe de prácticas de CGSM (2025-2026)</title>
+        <link rel="stylesheet" type="text/css" href="report.css">
+    </head>
+    <body>
+        <!-- Información general -->
+        <div id="head">
+            <table id="general">
+                <tr>
+                    <th class="header">Nombre:</th>
+                    <td>Pablo González García - UO289183</td>
+                </tr>
+                <tr>
+                    <th>Práctica:</th>
+                    <td>4</td>
+                </tr>
+            </table>
+        </div>
+        <div id="content">
+            <h1>Memoria</h1>
+            <h2>Descripción de la práctica</h2>
+                <p>
+                    En esta cuarta práctica se profundiza en aspectos avanzados de three.js: sonido 3D posicional
+                    mediante la API Web Audio, selección de objetos con <code>Raycaster</code>, interacción con
+                    los objetos seleccionados (activar/desactivar audio y cambiar textura) y detección de
+                    colisiones para impedir que la cámara atraviese los cubos de la escena.
+                </p>
+            <h2>Ejercicio 1 – Sonido 3D posicional</h2>
+                <p>
+                    Se parte de la escena de la práctica anterior (dos cajas texturizadas sobre un grid con
+                    <code>FirstPersonControls</code>) y se añaden dos fuentes de audio posicional. Para ello se
+                    crea un <code>THREE.AudioListener</code> y se adjunta a la cámara; esto hace que el
+                    observador escuche desde la posición de la cámara. Cada caja recibe una fuente
+                    <code>THREE.PositionalAudio</code> cargada con <code>THREE.AudioLoader</code>. Se configuran
+                    <code>setRefDistance(20)</code> (distancia a partir de la cual el sonido empieza a
+                    atenuarse) y <code>setRolloffFactor(1)</code> (velocidad de atenuación). Dado que los
+                    navegadores modernos bloquean el autoplay de audio, se muestra una superposición que el
+                    usuario debe pulsar para iniciar el contexto de audio (<code>AudioContext.resume()</code>)
+                    y arrancar ambos sonidos.
+                </p>
+                <iframe class="container" src="prac4-1.html" scrolling="no"></iframe>
+            <h2>Ejercicio 2 – Selección de objetos</h2>
+                <p>
+                    Se añade a la escena anterior la posibilidad de seleccionar las cajas usando un
+                    <code>THREE.Raycaster</code>. La posición del ratón se convierte a coordenadas NDC
+                    (rango [-1,1]) mediante el evento <code>mousemove</code>. En cada fotograma del bucle de
+                    animación se ejecuta <code>rayCaster.setFromCamera(mouse, camera)</code> para trazar un
+                    rayo desde la cámara hacia la escena; si el primer objeto intersecado cambia, se registra
+                    su nombre en consola. Cada caja tiene asignado un nombre mediante la propiedad
+                    <code>name</code> (<em>Caja 1</em> y <em>Caja 2</em>) para poder identificarlas en los
+                    mensajes. El sonido posicional continúa funcionando igual que en el ejercicio anterior.
+                </p>
+                <iframe class="container" src="prac4-2.html" scrolling="no"></iframe>
+            <h2>Ejercicio 3 – Interacción con los objetos seleccionados</h2>
+                <p>
+                    Se extiende la escena anterior para que, al pulsar la barra espaciadora con el ratón
+                    sobre una caja, se alterne entre reproducir y pausar su sonido y se cambie la textura
+                    de la cara del botón. Se pre-cargan dos materiales para la cara del botón:
+                    <code>matButtonOn</code> (textura <em>brick_wall_with_button</em> con su mapa topológico,
+                    que representa el botón encendido) y <code>matButtonOff</code> (textura
+                    <em>brick_wall</em> con su mapa topológico, botón apagado). Las cajas arrancan con
+                    <code>matButtonOff</code>. Al detectar la tecla <code>Space</code> sobre un objeto
+                    intersecado se llama a <code>sound.play()</code> o <code>sound.pause()</code> según el
+                    estado actual (<code>sound.isPlaying</code>) y se actualiza <code>box.material[face]</code>
+                    junto con <code>box.material.needsUpdate = true</code>. El primer uso también reanuda el
+                    <code>AudioContext</code> si está suspendido.
+                </p>
+                <iframe class="container" src="prac4-3.html" scrolling="no"></iframe>
+            <h2>Ejercicio 4 – Detección de colisiones</h2>
+                <p>
+                    Se añade detección de colisiones para impedir que la cámara atraviese los cubos. Se
+                    definen 8 direcciones de movimiento posibles en el plano XZ (adelante, atrás, izquierda,
+                    derecha y las cuatro diagonales). En cada fotograma, tras mover la cámara con
+                    <code>controls.update(delta)</code>, se lanza un rayo desde la posición actual de la
+                    cámara en cada una de las 8 direcciones contra los objetos de la escena con
+                    <code>rayCaster.set(camera.position, direction)</code>. Si algún rayo interseca un objeto
+                    a una distancia menor o igual a 20 unidades, se deshace el movimiento llamando a
+                    <code>controls.update(-delta)</code>. Esta solución es simple pero efectiva para escenas
+                    con pocos obstáculos estáticos.
+                </p>
+                <iframe class="container" src="prac4-4.html" scrolling="no"></iframe>
+            <h2>Dificultades encontradas</h2>
+                <p>
+                    La principal dificultad en el ejercicio 1 fue la política de autoplay de los navegadores
+                    modernos: la llamada a <code>sound.play()</code> dentro del callback del
+                    <code>AudioLoader</code> es ignorada si no ha habido interacción previa del usuario. La
+                    solución adoptada fue mostrar una superposición que requiere un clic, lo que constituye
+                    la interacción necesaria para llamar a <code>AudioContext.resume()</code> y arrancar los
+                    sonidos. Además, fue necesario comprobar si el buffer ya estaba cargado en el momento
+                    del clic o si aún no se había recibido, gestionando ambos casos con una bandera
+                    <code>audioUnlocked</code>.
+                </p>
+                <p>
+                    En el ejercicio 3, cambiar la textura de una sola cara requirió reemplazar el elemento
+                    concreto del array <code>box.material[]</code> (índice 0 para la Caja 1 e índice 1 para
+                    la Caja 2, según la configuración establecida en prácticas anteriores) y marcar
+                    <code>box.material.needsUpdate = true</code>; sin este último paso three.js no aplica
+                    el cambio. Para evitar recargar las texturas en cada pulsación, ambos materiales se
+                    pre-crean al inicio de la escena.
+                </p>
+                <p>
+                    En el ejercicio 4, la detección de colisiones mediante <code>controls.update(-delta)</code>
+                    funciona de forma aceptable pero no es perfecta: en ciertos ángulos de aproximación el
+                    usuario puede quedar "pegado" cerca de un cubo si la cámara entra en la zona de colisión
+                    en diagonal. Una solución más robusta pasaría por almacenar la posición de la cámara
+                    antes de moverla y restaurarla en caso de colisión, o por modificar
+                    <code>FirstPersonControls.js</code> para exponer el estado interno.
+                </p>
+        </div>
+    </body>
+</html>
