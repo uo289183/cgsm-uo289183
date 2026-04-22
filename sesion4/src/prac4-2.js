@@ -27,7 +27,7 @@ if (!isWebGL2Available()) {
 
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 4000);
     camera.position.set(0, 50, 300);
-    camera.lookAt(0, 0, 0);
+    camera.lookAt(0, 50, 0);
 
     // AudioListener attached to camera (positional audio from camera perspective)
     const listener = new THREE.AudioListener();
@@ -156,7 +156,7 @@ if (!isWebGL2Available()) {
     const controls = new FirstPersonControls(camera, renderer.domElement);
     controls.movementSpeed = 70;
     controls.lookSpeed = 0.05;
-    controls.noFly = false;
+    controls.noFly = true;
     controls.lookVertical = false;
 
     // Clock for delta time
