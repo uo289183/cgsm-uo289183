@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title>Informe de prácticas de CGSM (2025-2026)</title>
+        <link rel="stylesheet" type="text/css" href="report.css">
+    </head>
+    <body>
+        <!-- Información general -->
+        <div id="head">
+            <table id="general">
+                <tr>
+                    <th class="header">Nombre:</th>
+                    <td>Pablo González García - UO289183</td>
+                </tr>
+                <tr>
+                    <th>Práctica:</th>
+                    <td>5</td>
+                </tr>
+            </table>
+        </div>
+        <div id="content">
+            <h1>Memoria</h1>
+            <h2>Descripción de la práctica</h2>
+                <p>
+                    En esta quinta práctica se trabaja con la distribución de medios continuos mediante el estándar
+                    MPEG-DASH (<em>Dynamic Adaptive Streaming over HTTP</em>). Se analiza la estructura de manifiestos
+                    MPD, se prepara y sirve contenido multimedia propio utilizando <code>MP4Box</code> (paquete GPAC)
+                    y <code>http-server</code> con soporte CORS, y finalmente se integra el reproductor de referencia
+                    <code>dash.js</code> en una página web propia y en una escena Three.js como textura de vídeo
+                    adaptativa.
+                </p>
+
+            <h2>Análisis de manifiestos MPEG-DASH</h2>
+                <p>
+                    Se han examinado dos manifiestos de ejemplo para comprender la estructura MPD y las posibilidades
+                    de adaptación que ofrecen al cliente.
+                </p>
+
+                <h3>Manifiesto 1 – Sony (<code>SNE_DASH_SD_CASE1A_REVISED.mpd</code>)</h3>
+                <p>
+                    El manifiesto dispone de <strong>1 AdaptationSet de audio</strong> con
+                    <strong>1 única representación</strong> (AAC-HE / mp4a.40.5, 64 kbps, estéreo, 48 000 Hz),
+                    y de <strong>1 AdaptationSet de vídeo</strong> con <strong>4 representaciones</strong> a distintos
+                    bitrates:
+                </p>
+                <ul>
+                    <li>~452 kbps – 854×480</li>
+                    <li>~704 kbps – 854×480</li>
+                    <li>~1006 kbps – 854×480</li>
+                    <li>~1610 kbps – 854×480</li>
+                </ul>
+                <p>
+                    Todas las representaciones de vídeo tienen la misma resolución: <strong>854×480</strong> (SD 16:9).
+                    El cliente puede conmutar entre las 4 codificaciones de vídeo para adaptarse a condiciones
+                    cambiantes de red, pero siempre a la misma resolución. No existen representaciones de audio
+                    alternativas.
+                </p>
+                <ul>
+                    <li><strong>Codificaciones de audio:</strong> 1</li>
+                    <li><strong>Codificaciones de vídeo:</strong> 4</li>
+                    <li><strong>Resoluciones de vídeo:</strong> 1 → <em>854×480</em></li>
+                </ul>
+
+                <h3>Manifiesto 2 – Qualcomm (<code>MultiResMPEG2.mpd</code>)</h3>
+                <p>
+                    El manifiesto dispone de <strong>1 AdaptationSet de vídeo</strong> con
+                    <strong>3 representaciones</strong> a distintas resoluciones y bitrates,
+                    y de <strong>1 AdaptationSet de audio</strong> con <strong>1 única representación</strong>
+                    (AAC-HE v2 / mp4a.40.29, 32 kbps, estéreo, 48 000 Hz):
+                </p>
+                <ul>
+                    <li>~1198 kbps – 512×288</li>
+                    <li>~1974 kbps – 768×432</li>
+                    <li>~4103 kbps – 1280×720</li>
+                </ul>
+                <ul>
+                    <li><strong>Codificaciones de audio:</strong> 1</li>
+                    <li><strong>Codificaciones de vídeo:</strong> 3</li>
+                    <li><strong>Resoluciones de vídeo:</strong> 3 → <em>512×288</em>, <em>768×432</em>, <em>1280×720</em></li>
+                </ul>
+
+                <h3>Reproductor de referencia dash.js</h3>
+                <p>
+                    Se ha utilizado el reproductor de referencia <em>dash.js Reference Client</em> (versión 5.1.1)
+                    accesible desde la página del DASH Industry Forum para reproducir ambos manifiestos.
+                    Con la opción <em>Auto Switch</em> activa, el reproductor selecciona automáticamente la
+                    representación de mayor calidad disponible según el ancho de banda estimado. Al deshabilitar
+                    <em>Allow Local Storage</em> y habilitar <em>Fast Switching ABR</em>, el cambio de
+                    representaciones hacia calidades superiores se produce de forma inmediata, mientras que
+                    el descenso de calidad ocurre de forma más gradual para evitar interrupciones.
+                    Se ha comprobado además que la reproducción del flujo con subtítulos TTML en imagen
+                    (<em>Subtitles and Captions › TTML Image Subtitles embedded (VoD)</em>) muestra correctamente
+                    las pistas de subtítulos integradas en el manifiesto junto con audio y vídeo.
+                </p>
+
+            <h2>Vídeo bajo demanda con MPEG-DASH – Vídeo contador</h2>
+                <p>
+                    Sobre la máquina virtual GNU/Linux (accesible por SSH en <code>localhost:60022</code>,
+                    alumno:practicas) se instaló el paquete GPAC y se generó el manifiesto
+                    <code>counter.mpd</code> con el siguiente comando:
+                </p>
+                <pre><code>MP4Box -dash 5000 -profile onDemand -out counter.mpd \
+    counter_audio.mp4 counter_video_180.mp4 counter_video_360.mp4</code></pre>
+                <p>
+                    El resultado es un manifiesto con 1 AdaptationSet de audio y 1 AdaptationSet de vídeo
+                    con dos representaciones:
+                </p>
+                <ul>
+                    <li>Audio: mp4a.40.2, ~66 kbps, mono, 44 100 Hz</li>
+                    <li>Vídeo 180p: avc1.42c00d (H.264 Baseline), ~51 kbps, 320×180</li>
+                    <li>Vídeo 360p: avc1.42c01e (H.264 Baseline), ~195 kbps, 640×360</li>
+                </ul>
+                <p>
+                    El servidor web se arrancó en la máquina virtual con
+                    <code>http-server --cors</code> (puerto 8080) y se añadió una regla de reenvío de puertos
+                    en VirtualBox para mapear el puerto 60080 del anfitrión al 8080 de la máquina virtual.
+                    El manifiesto es accesible desde el anfitrión en
+                    <code>http://localhost:60080/counter.mpd</code>.
+                </p>
+
+            <h2>Ejercicio – Vídeo Sintel con streaming adaptativo</h2>
+                <p>
+                    El objetivo es servir el tráiler de Sintel en tres resoluciones (480p, 720p, 1080p)
+                    mediante MPEG-DASH con streaming adaptativo. Se siguieron tres aproximaciones progresivas:
+                </p>
+
+                <h3>Intento 1 – Manifiesto multiplexado (<code>sintel.mpd</code>)</h3>
+                <p>
+                    Se generó un primer manifiesto directamente a partir de los ficheros mp4 originales
+                    (audio y vídeo en el mismo track). El reproductor de referencia lanza un error en la
+                    consola de JavaScript al intentar reproducirlo:
+                    <em>"MediaSource type not supported: video/mp4; codecs=avc1.64001e,mp4a.40.2"</em>.
+                    El problema es que dash.js no admite representaciones multiplexadas (audio+vídeo en el
+                    mismo AdaptationSet); requiere flujos separados según la especificación DASH-AVC/264.
+                </p>
+
+                <h3>Intento 2 – Audio y vídeo separados, una sola calidad (<code>sintel_split.mpd</code>)</h3>
+                <p>
+                    Se extrajo el flujo de audio del fichero de 480p con <code>ffmpeg</code> y se recodificó
+                    el vídeo en H.264 baseline. Se generó el manifiesto con audio e imagen en AdaptationSets
+                    independientes:
+                </p>
+                <pre><code>ffmpeg -i sintel_trailer-480p.mp4 -vn -acodec copy sintel_trailer_audio-480.mp4
+ffmpeg -i sintel_trailer-480p.mp4 -an -c:v libx264 -r 24 -g 24 sintel_trailer_video-480p.mp4
+MP4Box -dash 5000 -profile onDemand -out sintel_split.mpd \
+    sintel_trailer_audio-480.mp4 sintel_trailer_video-480p.mp4</code></pre>
+                <p>
+                    El manifiesto resultante se reproduce correctamente: 1 pista de audio + vídeo en 480p.
+                </p>
+
+                <h3>Resultado final – ABR con tres calidades (<code>sintel_abr.mpd</code>)</h3>
+                <p>
+                    Se repitió la extracción y recodificación para 720p y 1080p, y se generó el manifiesto
+                    definitivo que ofrece streaming adaptativo entre las tres resoluciones:
+                </p>
+                <pre><code>MP4Box -dash 5000 -profile onDemand -out sintel_abr.mpd \
+    sintel_trailer_audio-480.mp4 \
+    sintel_trailer_video-480p.mp4 \
+    sintel_trailer_video-720p.mp4 \
+    sintel_trailer_video-1080p.mp4</code></pre>
+                <p>
+                    El manifiesto resultante contiene:
+                </p>
+                <ul>
+                    <li>1 AdaptationSet de audio: mp4a.40.2, ~129 kbps, estéreo, 48 000 Hz</li>
+                    <li>1 AdaptationSet de vídeo con 3 representaciones:
+                        <ul>
+                            <li>480p (854×480): ~540 kbps</li>
+                            <li>720p (1280×720): ~1036 kbps</li>
+                            <li>1080p (1920×1080): ~2110 kbps</li>
+                        </ul>
+                    </li>
+                </ul>
+                <p>
+                    Con la opción <em>Auto Switch</em> activa, el reproductor selecciona la representación
+                    de mayor calidad cuando el ancho de banda es suficiente, y degrada automáticamente
+                    al limitar el ancho de banda con <code>netem</code>
+                    (<code>tc qdisc add dev enp0s3 root handle 1:0 tbf rate 200kbit buffer 1600 limit 3000</code>).
+                </p>
+
+            <h2>Ejercicio 1 – Reproductor MPEG-DASH con dash.js (<code>prac5-1</code>)</h2>
+                <p>
+                    Se ha creado la página <code>prac5-1.html</code> que carga la biblioteca
+                    <code>dash.js</code> desde CDN e inicializa un reproductor MPEG-DASH sobre un elemento
+                    <code>&lt;video id="player"&gt;</code>. El script <code>src/prac5-1.js</code> se incluye
+                    con el atributo <code>defer</code> para garantizar que el DOM esté disponible al ejecutarse.
+                    El manifiesto utilizado es <code>sintel_abr.mpd</code> (3 calidades de vídeo + audio),
+                    servido desde <code>http://localhost:60080</code>.
+                </p>
+                <iframe class="container" src="prac5-1.html" scrolling="no"></iframe>
+                <p><em>Captura de ejemplo (requiere servidor DASH en localhost:60080):</em></p>
+                <img src="images/prac5-1_example.png" style="max-width:100%;border:1px solid #ccc;" alt="Ejemplo reproductor MPEG-DASH prac5-1">
+
+            <h2>Ejercicio 2 – Textura de vídeo MPEG-DASH en Three.js (<code>prac5-2</code>)</h2>
+                <p>
+                    Basándose en la práctica 3-2 (textura de vídeo sobre una malla Three.js), se ha adaptado
+                    la escena para que la fuente del vídeo sea un stream MPEG-DASH en lugar de un fichero
+                    local. Un elemento <code>&lt;video&gt;</code> oculto actúa como fuente: dash.js
+                    inicializa sobre él el reproductor apuntando a <code>sintel_abr.mpd</code>. Cada frame
+                    de animación, si el vídeo tiene datos suficientes (<code>HAVE_ENOUGH_DATA</code>),
+                    se dibuja sobre un canvas de 640×272 píxeles (ratio 2.35:1 del tráiler de Sintel) que
+                    sirve de textura (<code>THREE.Texture</code>) a un plano (<code>PlaneGeometry</code>)
+                    en rotación. La escena usa WebGL2 y se degrada con un mensaje de error si el navegador
+                    no lo soporta.
+                </p>
+                <iframe class="container" src="prac5-2.html" scrolling="no"></iframe>
+                <p><em>Captura de ejemplo (requiere servidor DASH en localhost:60080):</em></p>
+                <img src="images/prac5-2_example.png" style="max-width:100%;border:1px solid #ccc;" alt="Ejemplo textura Three.js MPEG-DASH prac5-2">
+
+            <h2>Dificultades encontradas</h2>
+                <p>
+                    La principal dificultad fue que dash.js rechaza representaciones multiplexadas
+                    (audio y vídeo en el mismo AdaptationSet), lanzando el error
+                    <em>"MediaSource type not supported"</em>. La solución requirió desmultiplexar los
+                    ficheros con <code>ffmpeg</code> y recodificar el vídeo a H.264 baseline para maximizar
+                    la compatibilidad entre navegadores antes de generar el manifiesto con MP4Box.
+                </p>
+                <p>
+                    Al generar el manifiesto ABR final (<code>sintel_abr.mpd</code>) con las tres pistas
+                    de vídeo pero sin incluir explícitamente el audio, el reproductor no reproducía sonido.
+                    Fue necesario añadir manualmente el AdaptationSet de audio (apuntando a
+                    <code>sintel_trailer_audio-480_dashinit.mp4</code>) al XML del manifiesto para obtener
+                    el resultado correcto.
+                </p>
+                <p>
+                    En la práctica 5-2, la reproducción automática del vídeo (necesaria para que la textura
+                    se actualice) está bloqueada por los navegadores hasta que haya interacción del usuario.
+                    Se gestionó registrando listeners de <code>pointerdown</code>, <code>click</code> y
+                    <code>keydown</code> que llaman a <code>video.play()</code>, de forma que el primer
+                    toque del usuario desbloquea la reproducción y la textura comienza a animarse.
+                </p>
+        </div>
+    </body>
+</html>
