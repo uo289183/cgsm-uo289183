@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset='utf-8'>
+        <title>Informe de prácticas de CGSM (2025-2026)</title>
+        <link rel="stylesheet" type="text/css" href="report.css">
+    </head>
+    <body>
+        <!-- Información general -->
+        <div id="head">
+            <table id="general">
+                <tr>
+                    <th class="header">Nombre:</th>
+                    <td>Pablo González García - UO289183</td>
+                </tr>
+                <tr>
+                    <th>Práctica:</th>
+                    <td>6</td>
+                </tr>
+            </table>
+        </div>
+        <div id="content">
+            <h1>Memoria</h1>
+            <h2>Descripción de la práctica</h2>
+                <p>
+                    En esta sexta práctica se trabaja con <strong>WebRTC</strong> (<em>Web Real-Time
+                    Communication</em>), la tecnología del navegador que permite comunicación multimedia
+                    en tiempo real sin necesidad de plugins adicionales. Se exploran las tres APIs
+                    principales de WebRTC: <code>MediaStream</code> (acceso a cámara y micrófono),
+                    <code>RTCPeerConnection</code> (distribución de medios entre pares) y
+                    <code>RTCDataChannel</code> (datos de baja latencia). Adicionalmente, se integra
+                    el flujo de vídeo WebRTC como textura en una escena Three.js/WebGL.
+                </p>
+                <p>
+                    Para garantizar la compatibilidad entre navegadores se ha utilizado la biblioteca
+                    <code>webrtc-adapter</code> (instalada vía <code>npm install webrtc-adapter</code>),
+                    que abstrae las diferencias entre implementaciones de Chrome, Firefox y otros
+                    navegadores modernos.
+                </p>
+
+            <h2>Ejercicio 1 – Captura de vídeo con MediaStream (<code>prac6-1</code>)</h2>
+                <p>
+                    La página <code>prac6-1.html</code> accede a la cámara del equipo utilizando la API
+                    <code>navigator.mediaDevices.getUserMedia()</code> con restricciones
+                    <code>{ audio: false, video: true }</code>. La promesa devuelta se encadena con
+                    <code>.then()</code> para asignar el flujo capturado al atributo <code>srcObject</code>
+                    del elemento <code>&lt;video&gt;</code>, y con <code>.catch()</code> para gestionar
+                    errores como <code>ConstraintNotSatisfiedError</code> (la resolución solicitada no está
+                    disponible) o <code>PermissionDeniedError</code> (el usuario denegó el acceso).
+                    El navegador solicita permiso al usuario antes de abrir la cámara y muestra un indicador
+                    visual de que la cámara está en uso.
+                </p>
+                <iframe class="container" src="prac6-1.html" scrolling="no" allow="camera"></iframe>
+
+            <h2>Ejercicio 2 – Captura de frames de vídeo (<code>prac6-2</code>)</h2>
+                <p>
+                    Basada en <code>prac6-1.html</code>, esta página añade la capacidad de fotografiar
+                    un frame del vídeo y descargarlo como PNG. Se emplean dos elementos adicionales:
+                    un <code>&lt;canvas&gt;</code> oculto (con identificador <code>photo-canvas</code>) y
+                    un enlace <code>&lt;a&gt;</code> con atributo <code>download="capture.png"</code>.
+                    El flujo es el siguiente:
+                </p>
+                <ol>
+                    <li>
+                        El evento <code>canplay</code> del elemento <code>&lt;video&gt;</code> se usa
+                        para determinar el tamaño real del vídeo capturado y ajustar el canvas al mismo
+                        aspecto (ancho fijo de 320 px, alto calculado proporcionalmente). La variable
+                        <code>streaming</code> evita la re-entrada en el manejador.
+                    </li>
+                    <li>
+                        Al pulsar el enlace <em>Capturar</em>, se llama a <code>takepicture()</code>,
+                        que dibuja el frame actual del vídeo en el canvas mediante
+                        <code>canvas.getContext('2d').drawImage(video, …)</code>.
+                    </li>
+                    <li>
+                        La imagen se convierte a data URL PNG con <code>canvas.toDataURL('image/png')</code>
+                        y se asigna al atributo <code>href</code> del enlace. Al ser el atributo
+                        <code>download</code> el que activa la descarga, el navegador guarda directamente
+                        el fichero <code>capture.png</code>.
+                    </li>
+                </ol>
+                <iframe class="container" src="prac6-2.html" scrolling="no" allow="camera"></iframe>
+
+            <h2>Ejercicio 3 – Llamada de vídeo con RTCPeerConnection (<code>prac6-3</code>)</h2>
+                <p>
+                    Esta página implementa una llamada de vídeo local (los dos extremos están en la misma
+                    página) para ilustrar el funcionamiento de <code>RTCPeerConnection</code>. La interfaz
+                    presenta dos elementos <code>&lt;video&gt;</code> (<em>local</em> y <em>remoto</em>) y
+                    tres botones: <strong>Start</strong>, <strong>Call</strong> y <strong>Hang up</strong>.
+                </p>
+                <p>El flujo de la llamada es:</p>
+                <ol>
+                    <li>
+                        <strong>Start</strong>: captura el stream local con <code>getUserMedia</code>,
+                        lo asigna al vídeo local (<code>localVideo.srcObject</code>) y habilita el botón
+                        <em>Call</em>.
+                    </li>
+                    <li>
+                        <strong>Call</strong>: crea dos objetos <code>RTCPeerConnection</code> (caller y
+                        callee). Añade las pistas del stream local al peer local. Inicia la negociación con
+                        <code>createOffer()</code> → <code>gotLocalDescription()</code> →
+                        <code>setLocalDescription</code> / <code>setRemoteDescription</code> →
+                        <code>createAnswer()</code> → <code>gotRemoteDescription()</code>.
+                        El protocolo ICE (<em>Interactive Connectivity Establishment</em>) intercambia
+                        candidatos de conectividad entre ambos peers mediante los manejadores
+                        <code>onicecandidate</code>. Cuando el stream remoto llega al peer callee,
+                        <code>gotRemoteTrack()</code> lo asigna al vídeo remoto.
+                    </li>
+                    <li>
+                        <strong>Hang up</strong>: cierra ambas conexiones (<code>.close()</code>), las
+                        pone a <code>null</code> y restablece el estado de los botones.
+                    </li>
+                </ol>
+                <p>
+                    En una aplicación real, los dos peers estarían en navegadores distintos y
+                    las descripciones multimedia (oferta/respuesta SDP) se intercambiarían mediante
+                    un servidor de señalización (por ejemplo, usando el protocolo SIP o WebSocket).
+                </p>
+                <iframe class="container" src="prac6-3.html" scrolling="no" allow="camera"></iframe>
+
+            <h2>Ejercicio 4 – Integración WebRTC + WebGL (<code>prac6-4</code>)</h2>
+                <p>
+                    Partiendo de la práctica 3-2 (textura de vídeo sobre un plano Three.js en rotación),
+                    se ha sustituido la fuente de vídeo (fichero <code>.mp4</code>) por el stream de la
+                    cámara web obtenido con <code>getUserMedia</code>. El proceso es:
+                </p>
+                <ol>
+                    <li>
+                        Se crea dinámicamente un elemento <code>&lt;video&gt;</code> (fuera del DOM)
+                        y se le asigna el stream de la cámara como <code>srcObject</code>.
+                    </li>
+                    <li>
+                        En cada frame del bucle de animación Three.js, si el vídeo tiene suficientes datos
+                        (<code>readyState === HAVE_ENOUGH_DATA</code>), se dibuja el frame actual sobre un
+                        canvas 2D de 640×480 px que actúa como fuente de la textura
+                        (<code>THREE.Texture</code>). Se establece <code>texture.needsUpdate = true</code>
+                        para que Three.js suba la textura actualizada a la GPU.
+                    </li>
+                    <li>
+                        El plano (<code>PlaneGeometry</code>) rota continua sobre el eje Y, mostrando la
+                        imagen de la cámara en tiempo real sobre una malla 3D.
+                    </li>
+                </ol>
+                <iframe class="container" src="prac6-4.html" scrolling="no" allow="camera"></iframe>
+
+            <h2>Dificultades encontradas</h2>
+                <p>
+                    La principal dificultad al trabajar con WebRTC es la política de seguridad de los
+                    navegadores modernos, que solo permiten el acceso a la cámara en contextos seguros
+                    (<code>https://</code> o <code>localhost</code>). Al usar el servidor de desarrollo
+                    de webpack (<code>webpack-dev-server</code>) con <code>localhost</code> no existe
+                    este problema, pero habría que configurar HTTPS para servir desde una IP pública.
+                </p>
+                <p>
+                    En <code>prac6-3</code>, las llamadas a <code>setLocalDescription</code> y
+                    <code>setRemoteDescription</code> en la función <code>gotLocalDescription</code> deben
+                    ejecutarse antes de llamar a <code>createAnswer()</code>. Dado que estas operaciones son
+                    asíncronas en algunos navegadores, el orden correcto del encadenamiento de promesas es
+                    crítico para evitar que ICE no consiga conectar los peers.
+                </p>
+                <p>
+                    En <code>prac6-4</code>, al igual que en la práctica 5-2, la reproducción automática
+                    del vídeo puede estar bloqueada por el navegador. Sin embargo, al usar un stream de
+                    cámara directamente (en lugar de un elemento media de archivo), los navegadores
+                    permiten la reproducción automática de streams <em>muted</em>, por lo que el vídeo
+                    arranca sin necesidad de interacción del usuario.
+                </p>
+        </div>
+    </body>
+</html>
